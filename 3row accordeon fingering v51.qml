@@ -1,6 +1,6 @@
 //______________________________________________________________________________________________
 //
-// v5.1 26.12.2018 by Hendrik Steyaert
+// v5.1.1 28.12.2018 by Hendrik Steyaert
 // Based on inputs from Kris Bruggeman
 //
 // Write the accordeon fingering to a score according the Corgeron notation. 
@@ -10,168 +10,173 @@
 import QtQuick 2.3
 import QtQuick.Controls 1.2
 import QtQuick.Dialogs 1.2
+import QtQuick.Window 2.2
 import MuseScore 1.0
 
 MuseScore {
     menuPath: "Plugins.Dirk 3 row accordeon"
-    version: "5.1"
+    version: "5.1.1"
     description: qsTr("Add accordeon fingering to the score. Based on Dirk's 3 row accordeon layout.")
-    pluginType: "dialog"
+//    pluginType: "dialog"
 
-    id: window
-    width: 346
-    height: 173
-
-    function showMessageDialog(message, detailedText) {
-        messageDialog.text = message
-        messageDialog.detailedText = detailedText
-        messageDialog.open()
-    }
-
-    MessageDialog {
-        id: messageDialog
-        title: 'Dirk 3 row accordeon'
-        icon: StandardIcon.Warning
-        text: ''
-        detailedText: ''
-        standardButtons: StandardButton.Ok
-        Component.onCompleted: visible = false
-    }
-
-    Label {
-        id: firsLabel
+    Window {
+      id: window
+      width: 450
+      height: 180
+      minimumWidth: 350
+      minimumHeight: 170
+      visible: false
+      title: titleText
+      
+      onClosing: { Qt.quit();}
+      
+        
+      Label {
+        id: firstLabel
         text: 'Enter position of the first row (10-19.99)'
        // width: 100
-        anchors.top: window.top
-        anchors.left: window.left
+        anchors.top: parent.top
+        anchors.left: parent.left
         anchors.topMargin: 10
         anchors.leftMargin: 10
         font.family: "Verdana"
         font.pointSize: 12
-    }
+      }
 
-    TextField {
+      TextField {
         id: positionButtonOne
         text: "15.1"
         //placeholderText: qsTr("Enter pos")
         validator: RegExpValidator{regExp: /(1\d)([.]\d{1,2})?$/}
-        anchors.right: window.right
-        anchors.top: window.top
+        anchors.right: parent.right
+        anchors.verticalCenter: firstLabel.verticalCenter
         anchors.rightMargin: 10
-        anchors.topMargin: 10
         width: 50
-    }
+        height: 25
+      }
 
-    Label {
+      Label {
+        id: secondLabel
         text: 'Enter space between rows (1-4.99)'
  //       width: 25
-        anchors.top: positionButtonOne.bottom
-        anchors.left: window.left
+        anchors.top: firstLabel.bottom
+        anchors.left: parent.left
         anchors.topMargin: 10
         anchors.leftMargin: 10
         font.family: "Verdana"
         font.pointSize: 12
-    }
+      }
 
-    TextField {
+      TextField {
         id: offsetRows
         text: "2.25"
-        //placeholderText: qsTr("Voice")
         validator: RegExpValidator{regExp: /([1234])([.]\d{1,2})?$/}
-        anchors.right: window.right
-        anchors.top: positionButtonOne.bottom
+        anchors.right: parent.right
+        anchors.verticalCenter: secondLabel.verticalCenter
         anchors.rightMargin: 10
-        anchors.topMargin: 10
         width: 50
-    }
+        height: 25
+      }
 
-    Label {
+      Label {
+        id: thirdLabel
         text: 'Select the separater to use'
- //       width: 25
-        anchors.top: offsetRows.bottom
-        anchors.left: window.left
+        anchors.top: secondLabel.bottom
+        anchors.left: parent.left
         anchors.topMargin: 10
         anchors.leftMargin: 10
-    }
-/*
-    TextField {
-        id: separatorToUse
-        text: "/"
-        //placeholderText: qsTr("Voice")
-//        validator: DoubleValidator{bottom: 1; top: 5;}
-        anchors.right: window.right
-        anchors.top: offsetRows.bottom
-        anchors.rightMargin: 10
-        anchors.topMargin: 10
-        width: 50
-    }
-*/
+        font.family: "Verdana"
+        font.pointSize: 12
+      }
 
-    ComboBox {
+      ComboBox {
         id: separatorToUse
-        model: ["/", "-", "\\", "+", " ", "|", "?"]
-        width: 50
-        currentIndex: styleData.value
-        anchors.top: offsetRows.bottom
-        anchors.right: window.right
-        anchors.topMargin: 10
+        model: ["/", "-", "\\", "+", "|"]
+        anchors.right: parent.right
+        anchors.verticalCenter: thirdLabel.verticalCenter
         anchors.rightMargin: 10
+        width: 50
+        height: 25
         Component.onCompleted: {
             currentIndex = 0
         }
-    }
+//        onActivated: {
+//           buttonOK.focus = true
+//      }
+      }
 
-    Label {
+      Label {
         id: infoLabel
-        text: 'This will write fingersettings below the score.\nExisting annotations will be overwritten. '
+        text: 'This will write fingersettings below the staff.\nExisting annotations will be overwritten. '
        // width: 100
         anchors.top: separatorToUse.bottom
-        anchors.left: window.left
+        anchors.left: parent.left
         anchors.topMargin: 10
         anchors.leftMargin: 10
         color: "steelblue"
         font.family: "Helvetica"
-        font.italic: false
-    }
+        font.italic: true
+      }
 
 
-    Rectangle {
+      Rectangle {
         x: 8
         y: window.height - 35
-        width: 330
+        width: window.width - 16
         height: 1
-        color: "gray"
-    }
+        color: "steelblue"
+      }
 
-    Button {
+      Button {
         id: buttonOK
+        isDefault: true
         width: 75
         text: qsTr("OK")
-        anchors.bottom: window.bottom
+        anchors.bottom: parent.bottom
         anchors.right: buttonCancel.left
         anchors.bottomMargin: 5
         anchors.rightMargin: 5
         onClicked: {
+            window.close();
             curScore.startCmd();
             applyToNotesInSelection(addButton);
 //console.log("OK was pressed");
             curScore.endCmd();
             Qt.quit();
         }
-    }
+      }
 
-    Button {
+      Button {
         id: buttonCancel
         width: 75
         text: qsTr("Cancel")
-        anchors.bottom: window.bottom
-        anchors.right: window.right
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
         anchors.bottomMargin: 5
         anchors.rightMargin: 5
         onClicked: {
+            window.close();
             Qt.quit()
         }
+      }
+    } // Window
+
+    function showMessageDialog(message, detailedText) {
+      messageDialog.text = message
+      messageDialog.detailedText = detailedText
+      messageDialog.open()
+      }
+
+    MessageDialog {
+      id: messageDialog
+      title: titleText
+      icon: StandardIcon.Warning
+      text: ''
+      detailedText: ''
+      standardButtons: StandardButton.Ok
+//        Component.onCompleted: visible = false
     }
+
 
 property var bSeparator : separatorToUse.currentText;  /* separator used if 2 possible buttons have to be indicated on a line */
 property var bPosition : (positionButtonOne.text * 1);  /* position under the staff to draw the buttons of the first row */
@@ -180,6 +185,7 @@ property var buttonFont : "\"Tahoma\"";
 property var fontSize : "\"10\"";
 property var buttonColor : "#000000"; /* see https://html-color.codes for codes to use */
 property var keys :  ["","",""];  /* keys is used getKeys to store the buttonpositions */
+property var titleText : "Dirk's 3 row accordeon."
 
 /*=====================================================================================================
 This function translates the note on the staff to the possible button(s) to press.
@@ -440,6 +446,9 @@ Main entry point.
         if (!curScore) {
             Qt.quit()
             showMessageDialog('Geen partituur open', 'Open een partituur en probeer het dan nog eens😉')
+        } else {
+            window.visible = true;
+            window.requestActivate(); // Make this the active window.
         }
         
     }
